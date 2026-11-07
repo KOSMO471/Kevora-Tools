@@ -2,7 +2,7 @@
 
 **ToolHive**, tamamen tarayıcıda çalışan (*client-side*), sunucu gerektirmeyen ve geliştiriciler, tasarımcılar ile dijital işlerle uğraşan herkes için tasarlanmış ücretsiz bir çevrim içi araç setidir.
 
-👉 **Canlı Önizleme:** https://kosmo471.github.io/ToolHive/
+👉 **Canlı Önizleme:** https://kosmo471.github.io/Kevora-Tools/
 
 ---
 
