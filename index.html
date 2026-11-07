@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kevora — Tarayıcı Tabanlı Araçlar</title>
+<meta name="description" content="Kevora: QR, barkod, şifreleme, dönüştürücüler ve daha fazlası. %100 tarayıcıda çalışan, sunucu gerektirmeyen ücretsiz araç seti.">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;}
+:root{
+  --bg:#222831;
+  --card:#393E46;
+  --card-2:#2f353d;
+  --accent:#FFD369;
+  --text:#EEEEEE;
+  --muted:#9CA3AF;
+  --border:#4b525b;
+  --radius:14px;
+}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.accent{color:var(--accent);}
+
+.topbar{
+  position:sticky;top:0;z-index:50;
+  height:64px;display:flex;align-items:center;gap:14px;
+  padding:0 20px;
+  background:rgba(34,40,49,.93);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.brand{
+  display:flex;align-items:center;gap:10px;
+  font-weight:700;font-size:19px;letter-spacing:.4px;
+  color:var(--text);text-decoration:none;
+}
+.brand-mark{color:var(--accent);font-size:22px;line-height:1;}
+.topbar-right{margin-left:auto;}
+.badge{
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--accent);border:1px solid rgba(255,211,105,.35);
+  background:rgba(255,211,105,.08);
+  padding:5px 10px;border-radius:999px;
+}
+.menu-btn{
+  display:none;background:transparent;border:1px solid var(--border);color:var(--text);
+  width:40px;height:40px;border-radius:10px;font-size:18px;cursor:pointer;
+}
+
+.layout{display:flex;align-items:flex-start;}
+.sidebar{
+  width:270px;flex:0 0 270px;
+  position:sticky;top:64px;
+  height:calc(100vh - 64px);
+  overflow-y:auto;
+  padding:18px 14px 60px;
+  border-right:1px solid var(--border);
+  background:#1d222a;
+}
+.sidebar::-webkit-scrollbar{width:8px;}
+.sidebar::-webkit-scrollbar-thumb{background:#3d444d;border-radius:8px;}
+.main{flex:1;min-width:0;padding:26px 28px 70px;}
+@media(min-width:1500px){ .main{max-width:1100px;margin:0 auto;} }
+
+.nav-group{margin-bottom:20px;}
+.nav-group h4{
+  font-size:11px;text-transform:uppercase;letter-spacing:1.4px;
+  color:var(--muted);margin:0 0 8px 12px;font-weight:600;
+}
+.nav-link{
+  display:block;width:100%;padding:9px 12px;margin-bottom:2px;
+  border-radius:10px;border:none;background:none;
+  color:var(--text);font-size:14px;font-family:inherit;
+  text-align:left;cursor:pointer;transition:.15s;
+}
+.nav-link:hover{background:#2b313a;}
+.nav-link.active{background:var(--accent);color:#222831;font-weight:700;}
+
+.tool-panel{display:none;}
+.tool-panel.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.panel-head h2{font-size:23px;margin:0 0 4px;letter-spacing:.2px;}
+.panel-head p{margin:0 0 20px;color:var(--muted);font-size:14px;}
+
+.card{
+  background:var(--card);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:16px;
+}
+.mini-card{background:var(--card-2);border-radius:12px;padding:14px;}
+
+.label{display:block;font-size:12.5px;color:var(--muted);margin:0 0 6px;font-weight:600;letter-spacing:.3px;}
+.input, textarea, select{
+  width:100%;background:#2b313a;color:var(--text);
+  border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-size:14px;font-family:inherit;
+  outline:none;transition:.15s;
+}
+.input:focus, textarea:focus, select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(255,211,105,.12);
+}
+textarea{resize:vertical;min-height:90px;font-family:Consolas,'Courier New',monospace;font-size:13.5px;}
+.mono{font-family:Consolas,'Courier New',monospace;}
+.color-input{height:44px;padding:4px;cursor:pointer;}
+.color-input.tall{height:70px;}
+select{cursor:pointer;}
+.check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);margin:6px 0;cursor:pointer;}
+.check input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;}
+
+.btn{
+  background:var(--accent);color:#222831;border:none;border-radius:10px;
+  padding:10px 16px;font-weight:700;font-size:14px;font-family:inherit;
+  cursor:pointer;transition:.15s;
+}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.btn:active{transform:none;}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,211,105,.06);}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:860px){
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+}
+
+.result{
+  margin-top:12px;font-size:21px;font-weight:700;
+  color:var(--accent);font-family:Consolas,'Courier New',monospace;
+  word-break:break-all;
+}
+.status{margin-top:12px;font-size:13.5px;font-weight:600;min-height:20px;}
+.status.ok{color:#5fd68a;}
+.status.err{color:#ff6b6b;}
+.err{margin-top:10px;font-size:13px;color:#ff6b6b;min-height:18px;}
+.hint{margin-top:8px;font-size:12.5px;color:var(--muted);min-height:18px;line-height:1.4;}
+.preview{
+  display:flex;align-items:center;justify-content:center;
+  background:#fff;border-radius:12px;padding:18px;min-height:220px;
+}
+.qr-box{display:flex;align-items:center;justify-content:center;line-height:0;}
+.qr-box img,.qr-box canvas{display:block;max-width:100%;height:auto;}
+
+.calc-display{
+  background:#2b313a;border-radius:12px;padding:14px 16px;
+  text-align:right;margin-bottom:12px;min-height:88px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+.calc-expr{color:var(--muted);font-size:14px;font-family:Consolas,monospace;min-height:20px;word-break:break-all;}
+.calc-result{font-size:30px;font-weight:700;color:var(--accent);word-break:break-all;font-family:Consolas,monospace;}
+.calc-keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.calc-keys button{
+  padding:14px 0;border-radius:10px;border:1px solid var(--border);
+  background:var(--card-2);color:var(--text);font-size:16px;
+  font-family:inherit;cursor:pointer;transition:.12s;
+}
+.calc-keys button:hover{background:#3b424b;}
+.calc-keys button:active{transform:scale(.96);}
+.calc-keys button.op{color:var(--accent);}
+.calc-keys button.fn{font-size:13px;color:var(--muted);}
+.calc-keys button.eq{background:var(--accent);color:#222831;font-weight:700;}
+
+.swatch{height:100px;border-radius:12px;border:1px solid var(--border);transition:background .2s;}
+.shades{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.shades div{height:40px;border-radius:8px;cursor:pointer;border:1px solid rgba(0,0,0,.2);transition:.15s;}
+.shades div:hover{transform:translateY(-2px);}
+.ct-preview{padding:20px;border-radius:12px;font-size:16px;font-weight:600;transition:.2s;margin-bottom:4px;}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.badges span{
+  font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);
+}
+.badges span.pass{background:rgba(95,214,138,.15);border-color:#5fd68a;color:#5fd68a;}
+.badges span.fail{background:rgba(255,107,107,.12);border-color:#ff6b6b;color:#ff6b6b;}
+
+.conv-list{display:flex;flex-direction:column;gap:10px;}
+.conv-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card-2);border-radius:10px;padding:10px 14px;
+}
+.conv-row .k{flex:0 0 150px;font-size:12.5px;color:var(--muted);font-weight:700;letter-spacing:.3px;}
+.conv-row .v{
+  flex:1;min-width:0;font-family:Consolas,'Courier New',monospace;font-size:13px;
+  word-break:break-all;color:var(--text);
+}
+.conv-row .c{
+  flex:0 0 auto;background:transparent;border:1px solid var(--border);
+  color:var(--muted);border-radius:8px;padding:4px 10px;font-size:12px;
+  cursor:pointer;font-family:inherit;transition:.15s;
+}
+.conv-row .c:hover{border-color:var(--accent);color:var(--accent);}
+.empty{color:var(--muted);font-size:13.5px;text-align:center;padding:20px;}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);
+  background:var(--accent);color:#222831;font-weight:700;font-size:14px;
+  padding:11px 20px;border-radius:999px;opacity:0;pointer-events:none;
+  transition:.25s;z-index:200;box-shadow:0 8px 30px rgba(0,0,0,.4);
+}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+.overlay{
+  position:fixed;inset:64px 0 0 0;background:rgba(0,0,0,.55);
+  opacity:0;pointer-events:none;transition:.25s;z-index:55;
+}
+.overlay.show{opacity:1;pointer-events:auto;}
+
+@media(max-width:900px){
+  .menu-btn{display:inline-flex;align-items:center;justify-content:center;}
+  .sidebar{
+    position:fixed;top:64px;left:0;bottom:0;height:auto;z-index:60;
+    transform:translateX(-100%);transition:transform .25s ease;
+    box-shadow:0 0 40px rgba(0,0,0,.55);width:280px;
+  }
+  .sidebar.open{transform:none;}
+  .main{padding:18px 16px 70px;}
+  .panel-head h2{font-size:20px;}
+  .conv-row{flex-wrap:wrap;}
+  .conv-row .k{flex:0 0 100%;}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="menu-btn" id="menuBtn" aria-label="Menü">☰</button>
+  <a class="brand" href="#qr"><span class="brand-mark">⬢</span><span>Kevora<span class="accent">Tools</span></span></a>
+  <div class="topbar-right"><span class="badge">100% Client-Side</span></div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="nav-group">
+      <h4>Üreticiler</h4>
+      <button class="nav-link" data-tool="qr">🔳 QR Kod Yapıcı</button>
+      <button class="nav-link" data-tool="barcode">📊 Barkod Yapıcı</button>
+      <button class="nav-link" data-tool="uuid">🆔 UUID / GUID</button>
+    </div>
+    <div class="nav-group">
+      <h4>Hesaplama</h4>
+      <button class="nav-link" data-tool="calc">🧮 Hesap Makinesi</button>
+      <button class="nav-link" data-tool="percent">％ Yüzde Hesaplayıcı</button>
+      <button class="nav-link" data-tool="units">📐 Birim Dönüştürücü</button>
+    </div>
+    <div class="nav-group">
+      <h4>Dönüştürme</h4>
+      <button class="nav-link" data-tool="base64">🔤 Base64 / URL</button>
+      <button class="nav-link" data-tool="color">🎨 Renk Çevirici</button>
+      <button class="nav-link" data-tool="converters">🔁 Dönüştürücü Sistemler</button>
+    </div>
+    <div class="nav-group">
+      <h4>Analiz</h4>
+      <button class="nav-link" data-tool="json">📋 JSON Biçimlendirici</button>
+      <button class="nav-link" data-tool="contrast">👁️ Kontrast Kontrolcü</button>
+    </div>
+    <div class="nav-group">
+      <h4>Şifreleme</h4>
+      <button class="nav-link" data-tool="cipher">🔐 Kripto & Klasik Şifreler</button>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+
+    <section class="tool-panel" id="qr">
+      <div class="panel-head">
+        <h2>QR Kod Yapıcı</h2>
+        <p>Metin veya URL'den anlık QR kod üretin.</p>
+      </div>
+      <div class="card">
+        <div class="grid-2">
+          <div>
+            <label class="label">Metin / URL</label>
+            <textarea id="qrInput" class="input" rows="4" placeholder="https://example.com">https://kosmo471.github.io/MY-Protfolyo/</textarea>
+            <div class="grid-2" style="margin-top:12px;">
+              <div>
+                <label class="label">Boyut</label>
+                <select id="qrSize" class="input">
+                  <option value="200">200 px</option>
+                  <option value="300" selected>300 px</option>
+                  <option value="400">400 px</option>
+                  <option value="500">500 px</option>
+                </select>
+              </div>
+              <div>
+                <label class="label">Koyu Renk</label>
+                <input type="color" id="qrColor" value="#222831" class="input color-input">
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn" id="qrGen">Oluştur</button>
+              <button class="btn ghost" id="qrDownload">PNG İndir</button>
+            </div>
+          </div>
+          <div class="preview">
+            <div id="qrBox" class="qr-box"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="barcode">
+      <div class="panel-head">
+        <h2>Barkod Yapıcı</h2>
+        <p>JsBarcode ile CODE128, EAN, UPC ve daha fazlasını üretin.</p>
+      </div>
+      <div class="card">
+        <div class="grid-2">
+          <div>
+            <label class="label">Değer</label>
+            <input id="bcInput" class="input" value="KEVORA2026">
+            <label class="label" style="margin-top:12px;">Format</label>
+            <select id="bcFormat" class="input">
+              <option value="CODE128" selected>CODE128 (her karakter)</option>
+              <option value="CODE39">CODE39</option>
+              <option value="EAN13">EAN13 (12-13 rakam)</option>
+              <option value="EAN8">EAN8 (7-8 rakam)</option>
+              <option value="UPC">UPC (11-12 rakam)</option>
+              <option value="ITF14">ITF14 (13-14 rakam)</option>
+              <option value="MSI">MSI</option>
+              <option value="pharmacode">Pharmacode</option>
+              <option value="codabar">Codabar</option>
+            </select>
+            <div class="btn-row">
+              <button class="btn" id="bcGen">Oluştur</button>
+              <button class="btn ghost" id="bcDownload">PNG İndir</button>
+            </div>
+            <div id="bcErr" class="err"></div>
+          </div>
+          <div class="preview">
+            <canvas id="bcCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="calc">
+      <div class="panel-head">
+        <h2>Hesap Makinesi</h2>
+        <p>Standart ve gelişmiş işlemler (trigonometri, logaritma, üs).</p>
+      </div>
+      <div class="card" style="max-width:460px;">
+        <div class="calc-display">
+          <div class="calc-expr" id="calcExpr">&nbsp;</div>
+          <div class="calc-result" id="calcResult">0</div>
+        </div>
+        <div class="calc-keys" id="calcKeys">
+          <button class="fn" data-k="sin(">sin</button>
+          <button class="fn" data-k="cos(">cos</button>
+          <button class="fn" data-k="tan(">tan</button>
+          <button class="fn" data-k="sqrt(">√</button>
+          <button class="fn" data-k="log(">log</button>
+          <button class="fn" data-k="ln(">ln</button>
+          <button class="fn" data-k="pi">π</button>
+          <button class="fn" data-k="e">e</button>
+          <button class="fn" data-k="C">C</button>
+          <button class="fn" data-k="DEL">⌫</button>
+          <button class="op" data-k="(">(</button>
+          <button class="op" data-k=")">)</button>
+          <button data-k="7">7</button>
+          <button data-k="8">8</button>
+          <button data-k="9">9</button>
+          <button class="op" data-k="/">÷</button>
+          <button data-k="4">4</button>
+          <button data-k="5">5</button>
+          <button data-k="6">6</button>
+          <button class="op" data-k="*">×</button>
+          <button data-k="1">1</button>
+          <button data-k="2">2</button>
+          <button data-k="3">3</button>
+          <button class="op" data-k="-">−</button>
+          <button data-k="0">0</button>
+          <button data-k=".">.</button>
+          <button class="op" data-k="^">^</button>
+          <button class="op" data-k="+">+</button>
+          <button class="eq" data-k="=" style="grid-column:span 4">=</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="base64">
+      <div class="panel-head">
+        <h2>Base64 / URL Kodlayıcı & Çözücü</h2>
+        <p>UTF-8 destekli Base64 ve URL encoding dönüşümleri.</p>
+      </div>
+      <div class="card">
+        <label class="label">Girdi</label>
+        <textarea id="b64In" class="input" rows="5" placeholder="Metninizi yazın..."></textarea>
+        <div class="btn-row">
+          <button class="btn" data-op="b64enc">Base64 Kodla</button>
+          <button class="btn ghost" data-op="b64dec">Base64 Çöz</button>
+          <button class="btn" data-op="urlenc">URL Kodla</button>
+          <button class="btn ghost" data-op="urldec">URL Çöz</button>
+        </div>
+      </div>
+      <div class="card">
+        <label class="label">Çıktı</label>
+        <textarea id="b64Out" class="input" rows="5" readonly></textarea>
+        <div class="btn-row">
+          <button class="btn ghost" id="b64Copy">Kopyala</button>
+          <button class="btn ghost" id="b64Swap">↕ Girdiye Taşı</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="color">
+      <div class="panel-head">
+        <h2>Renk Paleti / Kod Çevirici</h2>
+        <p>HEX, RGB ve HSL arasında anlık dönüşüm + ton paleti.</p>
+      </div>
+      <div class="card">
+        <div class="grid-2">
+          <div>
+            <label class="label">Renk Seçici</label>
+            <input type="color" id="colPick" value="#FFD369" class="input color-input tall">
+            <label class="label" style="margin-top:12px;">HEX</label>
+            <input id="colHex" class="input mono" value="#FFD369">
+            <label class="label" style="margin-top:12px;">RGB</label>
+            <input id="colRgb" class="input mono" value="rgb(255, 211, 105)">
+            <label class="label" style="margin-top:12px;">HSL</label>
+            <input id="colHsl" class="input mono" value="hsl(42, 100%, 71%)">
+          </div>
+          <div>
+            <label class="label">Önizleme</label>
+            <div id="colSwatch" class="swatch"></div>
+            <label class="label" style="margin-top:14px;">Ton Paleti</label>
+            <div id="colShades" class="shades"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="contrast">
+      <div class="panel-head">
+        <h2>Luminance / Kontrast Kontrolcü</h2>
+        <p>WCAG 2.1'e göre erişilebilirlik kontrast oranı hesaplayıcı.</p>
+      </div>
+      <div class="card">
+        <div class="grid-2">
+          <div>
+            <label class="label">Ön Plan (Metin)</label>
+            <input type="color" id="ctFg" value="#EEEEEE" class="input color-input">
+            <label class="label" style="margin-top:12px;">Arka Plan</label>
+            <input type="color" id="ctBg" value="#222831" class="input color-input">
+          </div>
+          <div>
+            <label class="label">Önizleme</label>
+            <div id="ctPreview" class="ct-preview">Örnek Metin — The quick brown fox jumps over 13 lazy dogs.</div>
+            <div class="result" id="ctRatio">—</div>
+            <div id="ctBadges" class="badges"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="units">
+      <div class="panel-head">
+        <h2>Birim Dönüştürücü</h2>
+        <p>Uzunluk, ağırlık, sıcaklık, alan, hacim, hız, zaman ve veri.</p>
+      </div>
+      <div class="card">
+        <div class="grid-3">
+          <div>
+            <label class="label">Kategori</label>
+            <select id="unitCat" class="input"></select>
+          </div>
+          <div>
+            <label class="label">Değer</label>
+            <input id="unitVal" class="input" type="number" value="1" step="any">
+          </div>
+          <div>
+            <label class="label">&nbsp;</label>
+            <button class="btn ghost" id="unitSwap" style="width:100%">⇄ Değiştir</button>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:14px;">
+          <div>
+            <label class="label">Kaynak Birim</label>
+            <select id="unitFrom" class="input"></select>
+          </div>
+          <div>
+            <label class="label">Hedef Birim</label>
+            <select id="unitTo" class="input"></select>
+          </div>
+        </div>
+        <div class="result" id="unitResult">—</div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="percent">
+      <div class="panel-head">
+        <h2>Yüzde Hesaplayıcı</h2>
+        <p>Dört farklı yüzde senaryosu — anlık sonuç.</p>
+      </div>
+      <div class="card">
+        <div class="grid-2">
+          <div class="mini-card">
+            <label class="label">X'in %Y'si kaçtır?</label>
+            <div class="grid-2">
+              <input id="p1a" class="input" type="number" placeholder="X (sayı)">
+              <input id="p1b" class="input" type="number" placeholder="Y (%)">
+            </div>
+            <div class="result" id="p1r">—</div>
+          </div>
+          <div class="mini-card">
+            <label class="label">X, Y'nin yüzde kaçıdır?</label>
+            <div class="grid-2">
+              <input id="p2a" class="input" type="number" placeholder="X">
+              <input id="p2b" class="input" type="number" placeholder="Y">
+            </div>
+            <div class="result" id="p2r">—</div>
+          </div>
+          <div class="mini-card">
+            <label class="label">X → Y yüzde değişim</label>
+            <div class="grid-2">
+              <input id="p3a" class="input" type="number" placeholder="Eski (X)">
+              <input id="p3b" class="input" type="number" placeholder="Yeni (Y)">
+            </div>
+            <div class="result" id="p3r">—</div>
+          </div>
+          <div class="mini-card">
+            <label class="label">X'i %Y artır / azalt</label>
+            <div class="grid-2">
+              <input id="p4a" class="input" type="number" placeholder="X">
+              <input id="p4b" class="input" type="number" placeholder="Y (%)">
+            </div>
+            <div class="result" id="p4r">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="json">
+      <div class="panel-head">
+        <h2>JSON Biçimlendirici & Doğrulayıcı</h2>
+        <p>JSON'u formatlayın, küçültün veya hatalarını görün.</p>
+      </div>
+      <div class="card">
+        <label class="label">JSON Girdi</label>
+        <textarea id="jsonIn" class="input" rows="8" placeholder='{"name":"KEVORA","tools":12}'></textarea>
+        <div class="btn-row">
+          <button class="btn" id="jsonFmt2">Formatla (2)</button>
+          <button class="btn ghost" id="jsonFmt4">Formatla (4)</button>
+          <button class="btn ghost" id="jsonMin">Küçült</button>
+          <button class="btn ghost" id="jsonValidate">Doğrula</button>
+        </div>
+        <div id="jsonStatus" class="status"></div>
+      </div>
+      <div class="card">
+        <label class="label">Çıktı</label>
+        <textarea id="jsonOut" class="input" rows="8" readonly></textarea>
+        <div class="btn-row"><button class="btn ghost" id="jsonCopy">Kopyala</button></div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="uuid">
+      <div class="panel-head">
+        <h2>UUID / GUID Oluşturucu</h2>
+        <p>Kriptografik olarak güvenli v4 UUID üretimi.</p>
+      </div>
+      <div class="card">
+        <div class="grid-3">
+          <div>
+            <label class="label">Adet</label>
+            <input id="uuidCount" class="input" type="number" value="5" min="1" max="500">
+          </div>
+          <div>
+            <label class="label">Seçenekler</label>
+            <label class="check"><input type="checkbox" id="uuidUpper"> Büyük harf</label>
+            <label class="check"><input type="checkbox" id="uuidNoDash"> Tire yok</label>
+            <label class="check"><input type="checkbox" id="uuidBraces"> Süslü parantez</label>
+          </div>
+          <div>
+            <label class="label">&nbsp;</label>
+            <button class="btn" id="uuidGen" style="width:100%">Üret</button>
+            <button class="btn ghost" id="uuidCopy" style="width:100%;margin-top:8px;">Kopyala</button>
+          </div>
+        </div>
+        <textarea id="uuidOut" class="input" rows="10" readonly style="margin-top:14px;"></textarea>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="cipher">
+      <div class="panel-head">
+        <h2>Kriptografi & Klasik Şifreler</h2>
+        <p>ROT13, Atbash, Vigenère, Bacon, Rail Fence, Sütunlu, Playfair, Affine.</p>
+      </div>
+      <div class="card">
+        <div class="grid-2">
+          <div>
+            <label class="label">Şifre Yöntemi</label>
+            <select id="cipherType" class="input">
+              <option value="rot13">ROT13</option>
+              <option value="atbash">Atbash</option>
+              <option value="vigenere">Vigenère</option>
+              <option value="bacon">Bacon</option>
+              <option value="railfence">Rail Fence</option>
+              <option value="columnar">Sütunlu Yer Değiştirme</option>
+              <option value="playfair">Playfair</option>
+              <option value="affine">Affine</option>
+            </select>
+            <label class="label" style="margin-top:12px;">Anahtar / Parametre</label>
+            <input id="cipherKey" class="input" placeholder="Anahtar kelime veya sayı">
+            <div id="cipherExtra" class="hint"></div>
+          </div>
+          <div>
+            <label class="label">Çıktı</label>
+            <textarea id="cipherOut" class="input" rows="7" readonly></textarea>
+          </div>
+        </div>
+        <label class="label" style="margin-top:14px;">Girdi</label>
+        <textarea id="cipherIn" class="input" rows="4" placeholder="Metninizi yazın..."></textarea>
+        <div class="btn-row">
+          <button class="btn" id="cipherEnc">Şifrele</button>
+          <button class="btn ghost" id="cipherDec">Çöz</button>
+          <button class="btn ghost" id="cipherCopy">Kopyala</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-panel" id="converters">
+      <div class="panel-head">
+        <h2>Dönüştürücü Sistemler</h2>
+        <p>Morse, Binary, Oktal, Hex, Base32/58/64, URL, HTML, Unicode, Leet.</p>
+      </div>
+      <div class="card">
+        <label class="label">Girdi</label>
+        <textarea id="convIn" class="input" rows="4" placeholder="Dönüştürülecek metin..."></textarea>
+        <div class="btn-row" style="align-items:flex-end;">
+          <div style="flex:1;min-width:200px;">
+            <label class="label">Kaynak Format</label>
+            <select id="convFrom" class="input"></select>
+          </div>
+          <button class="btn" id="convRun">Dönüştür</button>
+          <button class="btn ghost" id="convClear">Temizle</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="convOut" class="conv-list"><div class="empty">Dönüşüm sonuçları burada görünecek.</div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), 1700);
+  }
+
+  function copy(text) {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => toast('Kopyalandı')).catch(fallback);
+    } else fallback();
+    function fallback() {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); toast('Kopyalandı'); } catch (e) { toast('Kopyalanamadı'); }
+      ta.remove();
+    }
+  }
+
+  function debounce(fn, ms) {
+    let t;
+    return function (...a) { clearTimeout(t); t = setTimeout(() => fn.apply(this, a), ms); };
+  }
+
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+  const strToBytes = s => enc.encode(s);
+  const bytesToStr = b => dec.decode(new Uint8Array(b));
+
+  const panels = $$('.tool-panel');
+  const navLinks = $$('.nav-link');
+  const sidebar = $('#sidebar');
+  const overlay = $('#overlay');
+
+  function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('show'); }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('show'); }
+
+  $('#menuBtn').addEventListener('click', () => {
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+  overlay.addEventListener('click', closeSidebar);
+
+  let lastPanel = null;
+
+  function route() {
+    let id = location.hash.replace('#', '') || 'qr';
+    if (!document.getElementById(id) || !document.getElementById(id).classList.contains('tool-panel')) {
+      id = 'qr';
+    }
+    panels.forEach(p => p.classList.toggle('active', p.id === id));
+    navLinks.forEach(l => l.classList.toggle('active', l.dataset.tool === id));
+    closeSidebar();
+    window.scrollTo(0, 0);
+    if (lastPanel !== id) {
+      lastPanel = id;
+      onPanelEnter(id);
+    }
+  }
+
+  function onPanelEnter(id) {
+    if (id === 'qr' && !$('#qrBox').dataset.done) makeQR();
+    if (id === 'barcode' && !$('#bcCanvas').dataset.done) makeBarcode();
+    if (id === 'color' && !$('#colSwatch').dataset.done) setFromHex($('#colHex').value);
+    if (id === 'contrast') updateContrast();
+    if (id === 'units' && !$('#unitCat').dataset.done) initUnits();
+    if (id === 'converters') updateCipherHint();
+  }
+
+  navLinks.forEach(l => {
+    l.addEventListener('click', e => {
+      e.preventDefault();
+      const target = '#' + l.dataset.tool;
+      if (location.hash === target) route();
+      else location.hash = target;
+    });
+  });
+  window.addEventListener('hashchange', route);
+
+  let qrObj = null;
+
+  function makeQR() {
+    const box = $('#qrBox');
+    if (typeof QRCode === 'undefined') { box.textContent = 'QR kütüphanesi yüklenemedi.'; return; }
+    const text = $('#qrInput').value || ' ';
+    const size = parseInt($('#qrSize').value, 10) || 300;
+    const color = $('#qrColor').value || '#222831';
+    box.innerHTML = '';
+    try {
+      qrObj = new QRCode(box, {
+        text: text,
+        width: size,
+        height: size,
+        colorDark: color,
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      box.dataset.done = '1';
+    } catch (e) {
+      box.textContent = 'Üretilemedi: ' + e.message;
+    }
+  }
+
+  $('#qrGen').addEventListener('click', makeQR);
+  $('#qrInput').addEventListener('input', debounce(makeQR, 350));
+  $('#qrSize').addEventListener('change', makeQR);
+  $('#qrColor').addEventListener('input', makeQR);
+
+  $('#qrDownload').addEventListener('click', () => {
+    const cv = $('#qrBox canvas');
+    if (!cv) return toast('Önce QR oluşturun');
+    const a = document.createElement('a');
+    a.href = cv.toDataURL('image/png');
+    a.download = 'Kevora-qr.png';
+    a.click();
+  });
+
+  function makeBarcode() {
+    const cv = $('#bcCanvas');
+    if (typeof JsBarcode === 'undefined') { $('#bcErr').textContent = 'Barkod kütüphanesi yüklenemedi.'; return; }
+    const val = $('#bcInput').value.trim();
+    const fmt = $('#bcFormat').value;
+    if (!val) { $('#bcErr').textContent = 'Lütfen bir değer girin.'; return; }
+    try {
+      JsBarcode(cv, val, {
+        format: fmt,
+        lineColor: '#222831',
+        background: '#ffffff',
+        width: 2,
+        height: 80,
+        displayValue: true,
+        margin: 12,
+        fontSize: 16
+      });
+      $('#bcErr').textContent = '';
+      cv.dataset.done = '1';
+    } catch (e) {
+      $('#bcErr').textContent = 'Hata: ' + e.message;
+    }
+  }
+
+  $('#bcGen').addEventListener('click', makeBarcode);
+  $('#bcFormat').addEventListener('change', makeBarcode);
+  $('#bcInput').addEventListener('input', debounce(makeBarcode, 400));
+
+  $('#bcDownload').addEventListener('click', () => {
+    const cv = $('#bcCanvas');
+    if (!cv || !cv.dataset.done) return toast('Önce barkod oluşturun');
+    const a = document.createElement('a');
+    a.href = cv.toDataURL('image/png');
+    a.download = 'Kevora-barcode.png';
+    a.click();
+  });
+
+  let calcExprStr = '';
+  let calcJustEvaluated = false;
+
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+
+  function applyFn(f, v) {
+    switch (f.toLowerCase()) {
+      case 'sin': return Math.sin(v);
+      case 'cos': return Math.cos(v);
+      case 'tan': return Math.tan(v);
+      case 'sqrt': return Math.sqrt(v);
+      case 'log': return Math.log10(v);
+      case 'ln': return Math.log(v);
+      case 'abs': return Math.abs(v);
+      case 'exp': return Math.exp(v);
+      default: throw new Error('Bilinmeyen fonksiyon: ' + f);
+    }
+  }
+
+  function evalExpr(src) {
+    let i = 0;
+    const s = String(src)
+      .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
+      .replace(/π/g, 'pi').replace(/\s+/g, '');
+
+    function parseExpr() {
+      let v = parseTerm();
+      while (i < s.length && (s[i] === '+' || s[i] === '-')) {
+        const op = s[i++];
+        const r = parseTerm();
+        v = op === '+' ? v + r : v - r;
+      }
+      return v;
+    }
+    function parseTerm() {
+      let v = parseUnary();
+      while (i < s.length && (s[i] === '*' || s[i] === '/' || s[i] === '%')) {
+        const op = s[i++];
+        const r = parseUnary();
+        v = op === '*' ? v * r : op === '/' ? v / r : v % r;
+      }
+      return v;
+    }
+    function parseUnary() {
+      if (s[i] === '-') { i++; return -parseUnary(); }
+      if (s[i] === '+') { i++; return parseUnary(); }
+      return parsePower();
+    }
+    function parsePower() {
+      const base = parsePrimary();
+      if (s[i] === '^') { i++; return Math.pow(base, parseUnary()); }
+      return base;
+    }
+    function parsePrimary() {
+      if (s[i] === '(') {
+        i++;
+        const v = parseExpr();
+        if (s[i] === ')') i++;
+        return v;
+      }
+      let start = i;
+      while (i < s.length && /[0-9.]/.test(s[i])) i++;
+      if (i > start) return parseFloat(s.slice(start, i));
+
+      let f = '';
+      while (i < s.length && /[a-zA-Z]/.test(s[i])) f += s[i++];
+      if (!f) throw new Error('Beklenmeyen karakter');
+
+      if (s[i] === '(') {
+        i++;
+        const v = parseExpr();
+        if (s[i] === ')') i++;
+        return applyFn(f, v);
+      }
+      const consts = { pi: Math.PI, e: Math.E };
+      const c = consts[f.toLowerCase()];
+      if (c === undefined) throw new Error('Bilinmeyen: ' + f);
+      return c;
+    }
+
+    const result = parseExpr();
+    if (i < s.length) throw new Error('Geçersiz ifade');
+    return result;
+  }
+
+  function fmtNum(n) {
+    if (!isFinite(n)) return n > 0 ? '∞' : '-∞';
+    if (Number.isNaN(n)) return 'Hata';
+    const r = Math.round(n * 1e12) / 1e12;
+    return String(r);
+  }
+
+  function renderCalc() {
+    $('#calcExpr').textContent = calcExprStr || '\u00a0';
+  }
+
+  $('#calcKeys').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const k = btn.dataset.k;
+
+    if (k === 'C') { calcExprStr = ''; calcJustEvaluated = false; $('#calcResult').textContent = '0'; renderCalc(); return; }
+    if (k === 'DEL') { calcExprStr = calcExprStr.slice(0, -1); renderCalc(); return; }
+    if (k === '=') {
+      if (!calcExprStr.trim()) return;
+      try {
+        const r = evalExpr(calcExprStr);
+        $('#calcResult').textContent = fmtNum(r);
+        calcJustEvaluated = true;
+      } catch (err) {
+        $('#calcResult').textContent = 'Hata';
+      }
+      return;
+    }
+    if (calcJustEvaluated) {
+      if (/[0-9.]/.test(k)) calcExprStr = '';
+      calcJustEvaluated = false;
+    }
+    calcExprStr += k;
+    renderCalc();
+  });
+
+  function b64encode(str) {
+    const bytes = strToBytes(str);
+    let bin = '';
+    bytes.forEach(b => bin += String.fromCharCode(b));
+    return btoa(bin);
+  }
+  function b64decode(str) {
+    const bin = atob(str.replace(/\s/g, ''));
+    return bytesToStr(Uint8Array.from(bin, c => c.charCodeAt(0)));
+  }
+
+  $$('#base64 .btn[data-op]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = $('#b64In').value;
+      const op = btn.dataset.op;
+      let out = '';
+      try {
+        if (op === 'b64enc') out = b64encode(val);
+        else if (op === 'b64dec') out = b64decode(val);
+        else if (op === 'urlenc') out = encodeURIComponent(val);
+        else if (op === 'urldec') out = decodeURIComponent(val);
+      } catch (e) {
+        out = 'Hata: ' + e.message;
+      }
+      $('#b64Out').value = out;
+    });
+  });
+  $('#b64Copy').addEventListener('click', () => copy($('#b64Out').value));
+  $('#b64Swap').addEventListener('click', () => { $('#b64In').value = $('#b64Out').value; });
+
+  function hexToRgb(h) {
+    h = String(h).replace('#', '').trim();
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const n = parseInt(h, 16);
+    if (isNaN(n)) return { r: 0, g: 0, b: 0 };
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  }
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(v => {
+      const x = Math.max(0, Math.min(255, Math.round(v)));
+      return x.toString(16).padStart(2, '0');
+    }).join('').toUpperCase();
+  }
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)); break;
+        case g: h = ((b - r) / d + 2); break;
+        case b: h = ((r - g) / d + 4); break;
+      }
+      h /= 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  }
+  function hslToRgb(h, s, l) {
+    h = ((h % 360) + 360) % 360 / 360;
+    s = Math.max(0, Math.min(100, s)) / 100;
+    l = Math.max(0, Math.min(100, l)) / 100;
+    if (s === 0) { const v = l * 255; return { r: v, g: v, b: v }; }
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    return {
+      r: hue2rgb(p, q, h + 1 / 3) * 255,
+      g: hue2rgb(p, q, h) * 255,
+      b: hue2rgb(p, q, h - 1 / 3) * 255
+    };
+  }
+
+  let colorLock = false;
+
+  function setFromHex(hex) {
+    if (colorLock) return;
+    colorLock = true;
+    const rgb = hexToRgb(hex);
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const hexOut = rgbToHex(rgb.r, rgb.g, rgb.b);
+    $('#colPick').value = hexOut.toLowerCase();
+    $('#colHex').value = hexOut;
+    $('#colRgb').value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+    $('#colHsl').value = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+    $('#colSwatch').style.background = hexOut;
+    renderShades(rgb);
+    $('#colSwatch').dataset.done = '1';
+    colorLock = false;
+  }
+
+  function renderShades(rgb) {
+    const box = $('#colShades');
+    box.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+      const p = i / 9;
+      let r, g, b;
+      if (p < 0.5) {
+        const t = p / 0.5;
+        r = rgb.r * (0.2 + 0.8 * t); g = rgb.g * (0.2 + 0.8 * t); b = rgb.b * (0.2 + 0.8 * t);
+      } else {
+        const t = (p - 0.5) / 0.5;
+        r = rgb.r + (255 - rgb.r) * t; g = rgb.g + (255 - rgb.g) * t; b = rgb.b + (255 - rgb.b) * t;
+      }
+      const hex = rgbToHex(r, g, b);
+      const d = document.createElement('div');
+      d.style.background = hex;
+      d.title = hex + ' — kopyalamak için tıkla';
+      d.addEventListener('click', () => copy(hex));
+      box.appendChild(d);
+    }
+  }
+
+  $('#colPick').addEventListener('input', e => setFromHex(e.target.value));
+  $('#colHex').addEventListener('input', e => {
+    const v = e.target.value.trim();
+    if (/^#?[0-9a-fA-F]{3}$/.test(v) || /^#?[0-9a-fA-F]{6}$/.test(v)) setFromHex(v);
+  });
+  $('#colRgb').addEventListener('input', e => {
+    const m = e.target.value.match(/(\d{1,3})\D+(\d{1,3})\D+(\d{1,3})/);
+    if (m) setFromHex(rgbToHex(+m[1], +m[2], +m[3]));
+  });
+  $('#colHsl').addEventListener('input', e => {
+    const m = e.target.value.match(/(\d{1,3})\D+(\d{1,3})\D+(\d{1,3})/);
+    if (m) {
+      const rgb = hslToRgb(+m[1], +m[2], +m[3]);
+      setFromHex(rgbToHex(rgb.r, rgb.g, rgb.b));
+    }
+  });
+
+  function relLuminance(rgb) {
+    const a = [rgb.r, rgb.g, rgb.b].map(v => {
+      v = v / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+  }
+  function contrastRatio(c1, c2) {
+    const l1 = relLuminance(c1), l2 = relLuminance(c2);
+    const hi = Math.max(l1, l2), lo = Math.min(l1, l2);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  function updateContrast() {
+    const fg = hexToRgb($('#ctFg').value);
+    const bg = hexToRgb($('#ctBg').value);
+    const ratio = contrastRatio(fg, bg);
+
+    const prev = $('#ctPreview');
+    prev.style.color = rgbToHex(fg.r, fg.g, fg.b);
+    prev.style.background = rgbToHex(bg.r, bg.g, bg.b);
+    $('#ctRatio').textContent = ratio.toFixed(2) + ' : 1';
+
+    const items = [
+      ['AA Normal (4.5)', ratio >= 4.5],
+      ['AA Büyük (3.0)', ratio >= 3],
+      ['AAA Normal (7.0)', ratio >= 7],
+      ['AAA Büyük (4.5)', ratio >= 4.5],
+      ['UI Bileşen (3.0)', ratio >= 3]
+    ];
+    const box = $('#ctBadges');
+    box.innerHTML = '';
+    items.forEach(([label, pass]) => {
+      const s = document.createElement('span');
+      s.textContent = (pass ? '✔ ' : '✘ ') + label;
+      s.className = pass ? 'pass' : 'fail';
+      box.appendChild(s);
+    });
+    const lum = document.createElement('span');
+    lum.textContent = `L(fg)=${relLuminance(fg).toFixed(4)} · L(bg)=${relLuminance(bg).toFixed(4)}`;
+    box.appendChild(lum);
+  }
+  $('#ctFg').addEventListener('input', updateContrast);
+  $('#ctBg').addEventListener('input', updateContrast);
+
+  const UNIT_DATA = {
+    length: {
+      label: 'Uzunluk',
+      units: {
+        'Metre (m)': 1, 'Kilometre (km)': 1000, 'Santimetre (cm)': 0.01, 'Milimetre (mm)': 0.001,
+        'Mil (mi)': 1609.344, 'Yarda (yd)': 0.9144, 'Fit (ft)': 0.3048,
+        'İnç (in)': 0.0254, 'Deniz Mili (nmi)': 1852
+      }
+    },
+    mass: {
+      label: 'Ağırlık',
+      units: {
+        'Kilogram (kg)': 1, 'Gram (g)': 0.001, 'Miligram (mg)': 0.000001, 'Ton (t)': 1000,
+        'Pound (lb)': 0.45359237, 'Ons (oz)': 0.028349523125, 'Stone (st)': 6.35029318
+      }
+    },
+    temp: {
+      label: 'Sıcaklık', special: true,
+      units: { 'Celsius (°C)': 1, 'Fahrenheit (°F)': 1, 'Kelvin (K)': 1 }
+    },
+    area: {
+      label: 'Alan',
+      units: {
+        'Metrekare (m²)': 1, 'Kilometrekare (km²)': 1e6, 'Hektar (ha)': 10000,
+        'Dönüm': 1000, 'Santimetrekare (cm²)': 0.0001,
+        'Fit kare (ft²)': 0.09290304, 'İnç kare (in²)': 0.00064516, 'Akre': 4046.8564224
+      }
+    },
+    volume: {
+      label: 'Hacim',
+      units: {
+        'Litre (L)': 1, 'Mililitre (mL)': 0.001, 'Metreküp (m³)': 1000,
+        'Santimetreküp (cm³)': 0.001, 'Galon (US)': 3.785411784,
+        'Quart (US)': 0.946352946, 'Pint (US)': 0.473176473,
+        'Fincan (US)': 0.2365882365, 'Yemek Kaşığı': 0.0147867648, 'Çay Kaşığı': 0.00492892159
+      }
+    },
+    speed: {
+      label: 'Hız',
+      units: {
+        'Metre/saniye (m/s)': 1, 'Kilometre/saat (km/h)': 0.2777777778,
+        'Mil/saat (mph)': 0.44704, 'Knot (kn)': 0.5144444444, 'Fit/saniye (ft/s)': 0.3048
+      }
+    },
+    time: {
+      label: 'Zaman',
+      units: {
+        'Saniye (s)': 1, 'Milisecond (ms)': 0.001, 'Dakika (dk)': 60,
+        'Saat (sa)': 3600, 'Gün': 86400, 'Hafta': 604800,
+        'Ay (30 gün)': 2592000, 'Yıl (365 gün)': 31536000
+      }
+    },
+    data: {
+      label: 'Veri',
+      units: {
+        'Byte (B)': 1, 'Kilobyte (KB)': 1024, 'Megabyte (MB)': 1048576,
+        'Gigabyte (GB)': 1073741824, 'Terabyte (TB)': 1099511627776, 'Bit (b)': 0.125
+      }
+    }
+  };
+
+  function tempToC(v, u) {
+    if (u.indexOf('Celsius') === 0) return v;
+    if (u.indexOf('Fahrenheit') === 0) return (v - 32) * 5 / 9;
+    return v - 273.15;
+  }
+  function tempFromC(c, u) {
+    if (u.indexOf('Celsius') === 0) return c;
+    if (u.indexOf('Fahrenheit') === 0) return c * 9 / 5 + 32;
+    return c + 273.15;
+  }
+
+  function fillUnitSelects(cat) {
+    const data = UNIT_DATA[cat];
+    const keys = Object.keys(data.units);
+    const from = $('#unitFrom'), to = $('#unitTo');
+    const prevFrom = from.value, prevTo = to.value;
+    from.innerHTML = ''; to.innerHTML = '';
+    keys.forEach(k => {
+      from.appendChild(new Option(k, k));
+      to.appendChild(new Option(k, k));
+    });
+    from.value = keys.includes(prevFrom) ? prevFrom : keys[0];
+    to.value = keys.includes(prevTo) ? prevTo : keys[1] || keys[0];
+  }
+
+  function convertUnit(v, from, to, cat) {
+    const data = UNIT_DATA[cat];
+    if (data.special) return tempFromC(tempToC(v, from), to);
+    return v * data.units[from] / data.units[to];
+  }
+
+  function runUnitConvert() {
+    const cat = $('#unitCat').value;
+    const v = parseFloat($('#unitVal').value);
+    const from = $('#unitFrom').value;
+    const to = $('#unitTo').value;
+    if (isNaN(v)) { $('#unitResult').textContent = '—'; return; }
+    const r = convertUnit(v, from, to, cat);
+    const clean = Math.round(r * 1e10) / 1e10;
+    $('#unitResult').textContent = `${v} ${from} = ${clean} ${to}`;
+  }
+
+  function initUnits() {
+    const catSel = $('#unitCat');
+    catSel.innerHTML = '';
+    Object.keys(UNIT_DATA).forEach(k => catSel.appendChild(new Option(UNIT_DATA[k].label, k)));
+    fillUnitSelects(catSel.value);
+    catSel.dataset.done = '1';
+    runUnitConvert();
+  }
+
+  $('#unitCat').addEventListener('change', () => { fillUnitSelects($('#unitCat').value); runUnitConvert(); });
+  $('#unitFrom').addEventListener('change', runUnitConvert);
+  $('#unitTo').addEventListener('change', runUnitConvert);
+  $('#unitVal').addEventListener('input', runUnitConvert);
+  $('#unitSwap').addEventListener('click', () => {
+    const a = $('#unitFrom').value;
+    $('#unitFrom').value = $('#unitTo').value;
+    $('#unitTo').value = a;
+    runUnitConvert();
+  });
+
+  function num(id) { const v = parseFloat($(id).value); return isNaN(v) ? null : v; }
+  function showPct(id, val) { $(id).textContent = val === null ? '—' : val; }
+
+  function calcPercent() {
+    const a1 = num('#p1a'), b1 = num('#p1b');
+    showPct('#p1r', (a1 !== null && b1 !== null) ? (a1 * b1 / 100).toFixed(4).replace(/\.?0+$/, '') : null);
+
+    const a2 = num('#p2a'), b2 = num('#p2b');
+    showPct('#p2r', (a2 !== null && b2 !== null && b2 !== 0) ? (a2 / b2 * 100).toFixed(4).replace(/\.?0+$/, '') + '%' : null);
+
+    const a3 = num('#p3a'), b3 = num('#p3b');
+    if (a3 !== null && b3 !== null && a3 !== 0) {
+      const ch = (b3 - a3) / Math.abs(a3) * 100;
+      $('#p3r').textContent = (ch >= 0 ? '+' : '') + ch.toFixed(4).replace(/\.?0+$/, '') + '%';
+    } else showPct('#p3r', null);
+
+    const a4 = num('#p4a'), b4 = num('#p4b');
+    if (a4 !== null && b4 !== null) {
+      const inc = a4 * (1 + b4 / 100);
+      const dec = a4 * (1 - b4 / 100);
+      $('#p4r').textContent = `↑ ${(+inc.toFixed(6))}  |  ↓ ${(+dec.toFixed(6))}`;
+    } else showPct('#p4r', null);
+  }
+  ['#p1a', '#p1b', '#p2a', '#p2b', '#p3a', '#p3b', '#p4a', '#p4b'].forEach(id => {
+    $(id).addEventListener('input', calcPercent);
+  });
+
+  function jsonStatus(msg, cls) {
+    const el = $('#jsonStatus');
+    el.textContent = msg;
+    el.className = 'status ' + (cls || '');
+  }
+  function jsonRun(indent) {
+    const raw = $('#jsonIn').value.trim();
+    if (!raw) { jsonStatus('Girdi boş.', 'err'); return; }
+    try {
+      const obj = JSON.parse(raw);
+      if (indent === 0) {
+        $('#jsonOut').value = JSON.stringify(obj);
+        jsonStatus('✅ Geçerli JSON — küçültüldü.', 'ok');
+      } else {
+        $('#jsonOut').value = JSON.stringify(obj, null, indent);
+        jsonStatus('✅ Geçerli JSON — biçimlendirildi.', 'ok');
+      }
+    } catch (e) {
+      jsonStatus('❌ ' + e.message, 'err');
+      $('#jsonOut').value = '';
+    }
+  }
+  $('#jsonFmt2').addEventListener('click', () => jsonRun(2));
+  $('#jsonFmt4').addEventListener('click', () => jsonRun(4));
+  $('#jsonMin').addEventListener('click', () => jsonRun(0));
+  $('#jsonValidate').addEventListener('click', () => {
+    try {
+      JSON.parse($('#jsonIn').value);
+      jsonStatus('✅ Geçerli JSON.', 'ok');
+    } catch (e) {
+      jsonStatus('❌ ' + e.message, 'err');
+    }
+  });
+  $('#jsonCopy').addEventListener('click', () => copy($('#jsonOut').value));
+
+  function uuidv4() {
+    if (window.crypto && crypto.randomUUID) {
+      try { return crypto.randomUUID(); } catch (e) { }
+    }
+    const b = new Uint8Array(16);
+    (window.crypto || window.msCrypto).getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('');
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  }
+
+  function genUUIDs() {
+    let count = parseInt($('#uuidCount').value, 10);
+    if (isNaN(count) || count < 1) count = 1;
+    if (count > 500) count = 500;
+    const upper = $('#uuidUpper').checked;
+    const noDash = $('#uuidNoDash').checked;
+    const braces = $('#uuidBraces').checked;
+    const out = [];
+    for (let i = 0; i < count; i++) {
+      let u = uuidv4();
+      if (noDash) u = u.replace(/-/g, '');
+      if (upper) u = u.toUpperCase();
+      if (braces) u = '{' + u + '}';
+      out.push(u);
+    }
+    $('#uuidOut').value = out.join('\n');
+  }
+  $('#uuidGen').addEventListener('click', genUUIDs);
+  $('#uuidCopy').addEventListener('click', () => copy($('#uuidOut').value));
+  ['#uuidUpper', '#uuidNoDash', '#uuidBraces'].forEach(id => $(id).addEventListener('change', genUUIDs));
+
+  function rot13(t) {
+    return t.replace(/[a-zA-Z]/g, c => {
+      const b = c <= 'Z' ? 65 : 97;
+      return String.fromCharCode((c.charCodeAt(0) - b + 13) % 26 + b);
+    });
+  }
+  function atbash(t) {
+    return t.replace(/[a-zA-Z]/g, c => {
+      const b = c <= 'Z' ? 65 : 97;
+      return String.fromCharCode(25 - (c.charCodeAt(0) - b) + b);
+    });
+  }
+  function vigenere(text, key, dec) {
+    key = (key || '').toUpperCase().replace(/[^A-Z]/g, '');
+    if (!key) return text;
+    let ki = 0, out = '';
+    for (const ch of text) {
+      if (/[a-zA-Z]/.test(ch)) {
+        const base = ch <= 'Z' ? 65 : 97;
+        const k = key.charCodeAt(ki % key.length) - 65;
+        const shift = dec ? -k : k;
+        out += String.fromCharCode((ch.charCodeAt(0) - base + shift + 2600) % 26 + base);
+        ki++;
+      } else out += ch;
+    }
+    return out;
+  }
+
+  const BACON_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function baconEnc(t) {
+    return t.toUpperCase().split('').map(c => {
+      const i = BACON_ALPHA.indexOf(c);
+      if (i < 0) return c;
+      return i.toString(2).padStart(5, '0').replace(/0/g, 'A').replace(/1/g, 'B');
+    }).join(' ');
+  }
+  function baconDec(t) {
+    const clean = t.toUpperCase().replace(/[^AB]/g, '');
+    let out = '';
+    for (let i = 0; i + 5 <= clean.length; i += 5) {
+      const n = parseInt(clean.slice(i, i + 5).replace(/A/g, '0').replace(/B/g, '1'), 2);
+      out += BACON_ALPHA[n] || '?';
+    }
+    return out;
+  }
+
+  function railEnc(text, rails) {
+    rails = Math.max(2, rails | 0);
+    const rows = Array.from({ length: rails }, () => []);
+    let r = 0, dir = 1;
+    for (const ch of text) {
+      rows[r].push(ch);
+      if (r === 0) dir = 1;
+      else if (r === rails - 1) dir = -1;
+      r += dir;
+    }
+    return rows.map(x => x.join('')).join('');
+  }
+  function railDec(text, rails) {
+    rails = Math.max(2, rails | 0);
+    const n = text.length;
+    const pattern = [];
+    let r = 0, dir = 1;
+    for (let i = 0; i < n; i++) {
+      pattern.push(r);
+      if (r === 0) dir = 1;
+      else if (r === rails - 1) dir = -1;
+      r += dir;
+    }
+    const counts = Array(rails).fill(0);
+    pattern.forEach(x => counts[x]++);
+    const rows = [];
+    let p = 0;
+    for (let i = 0; i < rails; i++) { rows.push(text.slice(p, p + counts[i])); p += counts[i]; }
+    const idx = Array(rails).fill(0);
+    let out = '';
+    for (const rr of pattern) out += rows[rr][idx[rr]++];
+    return out;
+  }
+
+  function colOrder(key) {
+    return key.split('').map((c, i) => i).sort((a, b) => {
+      const ca = key[a].toLowerCase(), cb = key[b].toLowerCase();
+      if (ca < cb) return -1;
+      if (ca > cb) return 1;
+      return a - b;
+    });
+  }
+  function colLens(n, cols) {
+    const lens = Array(cols).fill(0);
+    for (let i = 0; i < n; i++) lens[i % cols]++;
+    return lens;
+  }
+  function colEnc(text, key) {
+    key = (key || '').replace(/\s/g, '');
+    if (!key) return text;
+    const cols = key.length;
+    const order = colOrder(key);
+    const lens = colLens(text.length, cols);
+    let out = '';
+    for (const c of order) {
+      for (let r = 0; r < lens[c]; r++) out += text[r * cols + c];
+    }
+    return out;
+  }
+  function colDec(text, key) {
+    key = (key || '').replace(/\s/g, '');
+    if (!key) return text;
+    const cols = key.length;
+    const order = colOrder(key);
+    const lens = colLens(text.length, cols);
+    const rows = Math.ceil(text.length / cols);
+    const grid = Array.from({ length: rows }, () => Array(cols).fill(''));
+    let p = 0;
+    for (const c of order) {
+      for (let r = 0; r < lens[c]; r++) grid[r][c] = text[p++];
+    }
+    let out = '';
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if (grid[r][c]) out += grid[r][c];
+    return out;
+  }
+
+  function playfairGrid(key) {
+    key = (key || '').toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+    const seen = new Set();
+    const letters = [];
+    for (const c of (key + 'ABCDEFGHIKLMNOPQRSTUVWXYZ')) {
+      if (!seen.has(c)) { seen.add(c); letters.push(c); }
+    }
+    return letters;
+  }
+  function playfairPair(a, b, g, dec) {
+    const ia = g.indexOf(a), ib = g.indexOf(b);
+    if (ia < 0 || ib < 0) return a + b;
+    const ra = Math.floor(ia / 5), ca = ia % 5;
+    const rb = Math.floor(ib / 5), cb = ib % 5;
+    const d = dec ? -1 : 1;
+    if (ra === rb) {
+      return g[ra * 5 + (ca + d + 5) % 5] + g[rb * 5 + (cb + d + 5) % 5];
+    }
+    if (ca === cb) {
+      return g[((ra + d + 5) % 5) * 5 + ca] + g[((rb + d + 5) % 5) * 5 + cb];
+    }
+    return g[ra * 5 + cb] + g[rb * 5 + ca];
+  }
+  function playfair(text, key, dec) {
+    const g = playfairGrid(key);
+    if (g.length !== 25) throw new Error('Geçersiz Playfair anahtarı');
+    let t = text.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+    if (!t) return '';
+    if (!dec) {
+      const pairs = [];
+      for (let i = 0; i < t.length;) {
+        const a = t[i];
+        const b = t[i + 1];
+        if (!b) { pairs.push([a, 'X']); i += 1; }
+        else if (a === b) { pairs.push([a, 'X']); i += 1; }
+        else { pairs.push([a, b]); i += 2; }
+      }
+      return pairs.map(([a, b]) => playfairPair(a, b, g, false)).join('');
+    } else {
+      let out = '';
+      for (let i = 0; i + 1 < t.length; i += 2) out += playfairPair(t[i], t[i + 1], g, true);
+      if (t.length % 2) out += t[t.length - 1];
+      return out;
+    }
+  }
+
+  function modInverse(a, m) {
+    a = ((a % m) + m) % m;
+    for (let x = 1; x < m; x++) if ((a * x) % m === 1) return x;
+    return null;
+  }
+  function affine(text, a, b, dec) {
+    a = ((a % 26) + 26) % 26;
+    b = ((b % 26) + 26) % 26;
+    if (gcd(a, 26) !== 1) {
+      throw new Error('a değeri 26 ile aralarında asal olmalı (1,3,5,7,9,11,15,17,19,21,23,25)');
+    }
+    const ai = dec ? modInverse(a, 26) : a;
+    return text.replace(/[a-zA-Z]/g, c => {
+      const base = c <= 'Z' ? 65 : 97;
+      const x = c.charCodeAt(0) - base;
+      const y = dec ? (ai * (x - b)) : (a * x + b);
+      return String.fromCharCode(((y % 26) + 26) % 26 + base);
+    });
+  }
+
+  const KEY_HINTS = {
+    rot13: 'Anahtar gerekmez (şifreleme = çözme).',
+    atbash: 'Anahtar gerekmez.',
+    vigenere: 'Anahtar kelime — sadece harfler. Örn: KEVORA',
+    bacon: 'Anahtar gerekmez.',
+    railfence: 'Ray sayısı. Örn: 3',
+    columnar: 'Anahtar kelime. Örn: Kevora',
+    playfair: 'Anahtar kelime. Örn: Kevora',
+    affine: 'İki sayı: a,b — örn: 5,8'
+  };
+
+  function updateCipherHint() {
+    const t = $('#cipherType').value;
+    $('#cipherExtra').textContent = KEY_HINTS[t] || '';
+    const needsKey = !['rot13', 'atbash', 'bacon'].includes(t);
+    $('#cipherKey').disabled = !needsKey;
+    if (!needsKey) $('#cipherKey').value = '';
+  }
+
+  function runCipher(mode) {
+    const type = $('#cipherType').value;
+    const text = $('#cipherIn').value;
+    const key = $('#cipherKey').value;
+    let out = '';
+    try {
+      switch (type) {
+        case 'rot13': out = rot13(text); break;
+        case 'atbash': out = atbash(text); break;
+        case 'vigenere': out = vigenere(text, key, mode === 'dec'); break;
+        case 'bacon': out = (mode === 'enc') ? baconEnc(text) : baconDec(text); break;
+        case 'railfence': {
+          const r = Math.max(2, parseInt(key, 10) || 3);
+          out = (mode === 'enc') ? railEnc(text, r) : railDec(text, r);
+          break;
+        }
+        case 'columnar': out = (mode === 'enc') ? colEnc(text, key) : colDec(text, key); break;
+        case 'playfair': out = playfair(text, key, mode === 'dec'); break;
+        case 'affine': {
+          const m = String(key).match(/-?\d+/g) || [];
+          const a = parseInt(m[0], 10);
+          const b = parseInt(m[1], 10);
+          out = affine(text, isNaN(a) ? 5 : a, isNaN(b) ? 8 : b, mode === 'dec');
+          break;
+        }
+        default: out = text;
+      }
+    } catch (e) {
+      out = 'Hata: ' + e.message;
+    }
+    $('#cipherOut').value = out;
+  }
+
+  $('#cipherType').addEventListener('change', () => { updateCipherHint(); $('#cipherOut').value = ''; });
+  $('#cipherEnc').addEventListener('click', () => runCipher('enc'));
+  $('#cipherDec').addEventListener('click', () => runCipher('dec'));
+  $('#cipherCopy').addEventListener('click', () => copy($('#cipherOut').value));
+
+  const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+  function b32enc(bytes) {
+    let bits = 0, val = 0, out = '';
+    for (const b of bytes) {
+      val = (val << 8) | b;
+      bits += 8;
+      while (bits >= 5) {
+        bits -= 5;
+        out += B32[(val >>> bits) & 31];
+      }
+      val &= (1 << bits) - 1;
+    }
+    if (bits > 0) out += B32[(val << (5 - bits)) & 31];
+    while (out.length % 8 !== 0) out += '=';
+    return out;
+  }
+  function b32dec(str) {
+    const clean = str.toUpperCase().replace(/=+$/, '').replace(/\s/g, '');
+    let bits = 0, val = 0;
+    const out = [];
+    for (const c of clean) {
+      const i = B32.indexOf(c);
+      if (i < 0) continue;
+      val = (val << 5) | i;
+      bits += 5;
+      if (bits >= 8) {
+        bits -= 8;
+        out.push((val >>> bits) & 255);
+      }
+      val &= (1 << bits) - 1;
+    }
+    return new Uint8Array(out);
+  }
+
+  function b58enc(bytes) {
+    if (!bytes.length) return '';
+    let zeros = 0;
+    while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+    const digits = [];
+    for (let i = zeros; i < bytes.length; i++) {
+      let carry = bytes[i];
+      for (let j = 0; j < digits.length; j++) {
+        carry += digits[j] << 8;
+        digits[j] = carry % 58;
+        carry = (carry / 58) | 0;
+      }
+      while (carry > 0) {
+        digits.push(carry % 58);
+        carry = (carry / 58) | 0;
+      }
+    }
+    let out = '1'.repeat(zeros);
+    for (let i = digits.length - 1; i >= 0; i--) out += B58[digits[i]];
+    return out;
+  }
+  function b58dec(str) {
+    str = str.trim();
+    if (!str) return new Uint8Array(0);
+    let zeros = 0;
+    while (zeros < str.length && str[zeros] === '1') zeros++;
+    const bytes = [];
+    for (let i = zeros; i < str.length; i++) {
+      const v = B58.indexOf(str[i]);
+      if (v < 0) continue;
+      let carry = v;
+      for (let j = 0; j < bytes.length; j++) {
+        carry += bytes[j] * 58;
+        bytes[j] = carry & 0xff;
+        carry >>= 8;
+      }
+      while (carry > 0) {
+        bytes.push(carry & 0xff);
+        carry >>= 8;
+      }
+    }
+    const out = new Uint8Array(zeros + bytes.length);
+    for (let i = 0; i < bytes.length; i++) {
+      out[zeros + bytes.length - 1 - i] = bytes[i];
+    }
+    return out;
+  }
+
+  const MORSE = {
+    'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+    'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+    'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+    'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+    'Y': '-.--', 'Z': '--..',
+    '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-',
+    '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+    '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.', '!': '-.-.--',
+    '/': '-..-.', '(': '-.--.', ')': '-.--.-', '&': '.-...', ':': '---...',
+    ';': '-.-.-.', '=': '-...-', '+': '.-.-.', '-': '-....-', '_': '..--.-',
+    '"': '.-..-.', '$': '...-..-', '@': '.--.-.'
+  };
+  const MORSE_REV = (() => { const r = {}; for (const k in MORSE) r[MORSE[k]] = k; return r; })();
+
+  function morseEnc(t) {
+    return t.toUpperCase().split(/\s+/).map(w =>
+      w.split('').map(c => MORSE[c] || '').filter(Boolean).join(' ')
+    ).filter(Boolean).join(' / ');
+  }
+  function morseDec(t) {
+    return t.trim().split(/\s*\/\s*/).map(w =>
+      w.trim().split(/\s+/).map(c => MORSE_REV[c] || '').join('')
+    ).join(' ');
+  }
+
+  function bytesToHex(b) { return Array.from(b).map(x => x.toString(16).padStart(2, '0')).join(' '); }
+  function hexToBytes(s) {
+    const clean = s.replace(/0x/gi, '').replace(/[^0-9a-fA-F]/g, '');
+    const out = [];
+    for (let i = 0; i < clean.length; i += 2) {
+      out.push(parseInt(clean.slice(i, i + 2).padEnd(2, '0'), 16));
+    }
+    return new Uint8Array(out);
+  }
+  function bytesToBin(b) { return Array.from(b).map(x => x.toString(2).padStart(8, '0')).join(' '); }
+  function binToBytes(s) {
+    const clean = s.replace(/[^01]/g, '');
+    const out = [];
+    for (let i = 0; i < clean.length; i += 8) {
+      out.push(parseInt(clean.slice(i, i + 8).padEnd(8, '0'), 2));
+    }
+    return new Uint8Array(out);
+  }
+  function bytesToOct(b) { return Array.from(b).map(x => x.toString(8).padStart(3, '0')).join(' '); }
+  function octToBytes(s) {
+    const clean = s.replace(/[^0-7]/g, '');
+    const out = [];
+    for (let i = 0; i < clean.length; i += 3) {
+      out.push(parseInt(clean.slice(i, i + 3).padEnd(3, '0'), 8));
+    }
+    return new Uint8Array(out);
+  }
+  function bytesToDec(b) { return Array.from(b).join(' '); }
+  function decToBytes(s) {
+    return new Uint8Array(
+      s.trim().split(/[\s,]+/).filter(Boolean).map(x => (parseInt(x, 10) & 255) || 0)
+    );
+  }
+  function bytesToB64(b) {
+    let s = '';
+    b.forEach(x => s += String.fromCharCode(x));
+    return btoa(s);
+  }
+  function b64ToBytes(str) {
+    const s = atob(str.replace(/\s/g, ''));
+    return Uint8Array.from(s, c => c.charCodeAt(0));
+  }
+
+  function htmlEnc(t) {
+    return Array.from(t).map(c => '&#' + c.codePointAt(0) + ';').join('');
+  }
+  function htmlDec(t) {
+    return t
+      .replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(+d))
+      .replace(/&#x([0-9a-fA-F]+);/g, (m, h) => String.fromCodePoint(parseInt(h, 16)));
+  }
+  function uniEnc(t) {
+    let o = '';
+    for (let i = 0; i < t.length; i++) {
+      o += '\\u' + t.charCodeAt(i).toString(16).padStart(4, '0');
+    }
+    return o;
+  }
+  function uniDec(t) {
+    return t
+      .replace(/\\u([0-9a-fA-F]{4})/g, (m, h) => String.fromCharCode(parseInt(h, 16)))
+      .replace(/\\x([0-9a-fA-F]{2})/g, (m, h) => String.fromCharCode(parseInt(h, 16)));
+  }
+
+  const LEET = { a: '4', b: '8', e: '3', g: '9', i: '1', l: '1', o: '0', s: '5', t: '7', z: '2' };
+  const LEET_REV = { '4': 'a', '8': 'b', '3': 'e', '9': 'g', '1': 'i', '0': 'o', '5': 's', '7': 't', '2': 'z' };
+  function leetEnc(t) {
+    return t.replace(/[abegilostz]/gi, c => LEET[c.toLowerCase()] || c);
+  }
+  function leetDec(t) {
+    return t.replace(/[483901572]/g, c => LEET_REV[c] || c);
+  }
+
+  const CONV_FORMATS = [
+    { key: 'text', label: 'Metin' },
+    { key: 'binary', label: 'Binary (İkili)' },
+    { key: 'octal', label: 'Oktal' },
+    { key: 'decimal', label: 'Ondalık (Byte)' },
+    { key: 'hex', label: 'Hexadecimal' },
+    { key: 'base32', label: 'Base32' },
+    { key: 'base58', label: 'Base58' },
+    { key: 'base64', label: 'Base64' },
+    { key: 'morse', label: 'Morse Alfabesi' },
+    { key: 'url', label: 'URL Encoding' },
+    { key: 'html', label: 'HTML Entities' },
+    { key: 'unicode', label: 'Unicode Escape' },
+    { key: 'leet', label: 'Leet Speak' }
+  ];
+
+  function encodeAll(text) {
+    const bytes = strToBytes(text);
+    return {
+      text: text,
+      binary: bytesToBin(bytes),
+      octal: bytesToOct(bytes),
+      decimal: bytesToDec(bytes),
+      hex: bytesToHex(bytes),
+      base32: b32enc(bytes),
+      base58: b58enc(bytes),
+      base64: bytesToB64(bytes),
+      morse: morseEnc(text),
+      url: encodeURIComponent(text),
+      html: htmlEnc(text),
+      unicode: uniEnc(text),
+      leet: leetEnc(text)
+    };
+  }
+
+  function decodeFrom(fmt, src) {
+    switch (fmt) {
+      case 'text': return src;
+      case 'binary': return bytesToStr(binToBytes(src));
+      case 'octal': return bytesToStr(octToBytes(src));
+      case 'decimal': return bytesToStr(decToBytes(src));
+      case 'hex': return bytesToStr(hexToBytes(src));
+      case 'base32': return bytesToStr(b32dec(src));
+      case 'base58': return bytesToStr(b58dec(src));
+      case 'base64': return bytesToStr(b64ToBytes(src));
+      case 'morse': return morseDec(src);
+      case 'url': return decodeURIComponent(src);
+      case 'html': return htmlDec(src);
+      case 'unicode': return uniDec(src);
+      case 'leet': return leetDec(src);
+      default: return src;
+    }
+  }
+
+  function initConvSelect() {
+    const sel = $('#convFrom');
+    sel.innerHTML = '';
+    CONV_FORMATS.forEach(f => sel.appendChild(new Option(f.label, f.key)));
+  }
+
+  function runConvert() {
+    const src = $('#convIn').value;
+    const from = $('#convFrom').value;
+    const box = $('#convOut');
+    box.innerHTML = '';
+
+    let text;
+    try {
+      text = decodeFrom(from, src);
+    } catch (e) {
+      box.innerHTML = '<div class="empty">Girdi çözülemedi: ' + e.message + '</div>';
+      return;
+    }
+
+    const all = encodeAll(text);
+    CONV_FORMATS.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'conv-row';
+
+      const k = document.createElement('div');
+      k.className = 'k';
+      k.textContent = f.label;
+
+      const v = document.createElement('div');
+      v.className = 'v';
+      v.textContent = all[f.key] || '—';
+
+      const c = document.createElement('button');
+      c.className = 'c';
+      c.textContent = 'Kopyala';
+      c.addEventListener('click', () => copy(all[f.key] || ''));
+
+      row.appendChild(k); row.appendChild(v); row.appendChild(c);
+      box.appendChild(row);
+    });
+  }
+
+  $('#convRun').addEventListener('click', runConvert);
+  $('#convClear').addEventListener('click', () => {
+    $('#convIn').value = '';
+    $('#convOut').innerHTML = '<div class="empty">Dönüşüm sonuçları burada görünecek.</div>';
+  });
+
+  initConvSelect();
+  updateCipherHint();
+  genUUIDs();
+  calcPercent();
+  renderCalc();
+  route();
+  window.addEventListener('load', () => setTimeout(route, 50));
+
+})();
+</script>
+</body>
+</html>
