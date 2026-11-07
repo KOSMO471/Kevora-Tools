@@ -1,6 +1,6 @@
-# ⬢ ToolHive
+# ⬢ Kevora Tools
 
-**ToolHive**, tamamen tarayıcıda çalışan (*client-side*), sunucu gerektirmeyen ve geliştiriciler, tasarımcılar ile dijital işlerle uğraşan herkes için tasarlanmış ücretsiz bir çevrim içi araç setidir.
+**Kevora Tools**, tamamen tarayıcıda çalışan (*client-side*), sunucu gerektirmeyen ve geliştiriciler, tasarımcılar ile dijital işlerle uğraşan herkes için tasarlanmış ücretsiz bir çevrim içi araç setidir.
 
 👉 **Canlı Önizleme:** https://kosmo471.github.io/Kevora-Tools/
 
@@ -37,13 +37,3 @@ Proje tamamen saf web teknolojileriyle geliştirilmiştir ve dışarıdan ağır
 * **Vanilla JavaScript (ES6+)**
 * **QRCode.js** (QR kod üretimi için)
 * **JsBarcode** (Barkod üretimi için)
-
----
-
-## 🚀 Yerel Çalıştırma
-
-Projeyi kendi bilgisayarınızda çalıştırmak son derece basittir; herhangi bir sunucu kurmanıza gerek yoktur:
-
-1. Bu depoyu klonlayın veya ZIP olarak indirin:
-   ```bash
-   git clone [https://github.com/KOSMO471/ToolHive.git](https://github.com/KOSMO471/ToolHive.git)
