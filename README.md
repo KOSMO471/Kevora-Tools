@@ -1,5 +1,9 @@
 # ⬢ Kevora Tools
 
+![GitHub license](https://img.shields.io/github/license/kosmo471/Kevora-Tools?style=flat-square&color=ffd369)
+![GitHub stars](https://img.shields.io/github/stars/kosmo471/Kevora-Tools?style=flat-square&color=ffd369)
+![GitHub last commit](https://img.shields.io/github/last-commit/kosmo471/Kevora-Tools?style=flat-square&color=ffd369)
+
 **Kevora Tools**, QR kod, barkod üretimi, şifreleme algoritmaları, birim ve renk dönüştürücüleri gibi birçok geliştirici ve günlük aracı tek bir yerde toplayan **%100 tarayıcı tabanlı (client-side)** ücretsiz bir web aracı setidir. Herhangi bir sunucu gerektirmez, tüm işlemler doğrudan tarayıcınızda gerçekleşir.
 
 🔗 **Canlı Önizleme:** [https://kosmo471.github.io/Kevora-Tools/](https://kosmo471.github.io/Kevora-Tools/)
