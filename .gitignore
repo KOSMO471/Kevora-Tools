@@ -1,0 +1,16 @@
+# İşletim sistemi kalıntıları
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editör ve IDE ayarları
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Geçici dosyalar ve loglar
+*.log
+node_modules/
+dist/
+build/
